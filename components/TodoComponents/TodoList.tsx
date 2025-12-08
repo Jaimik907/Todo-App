@@ -1,31 +1,127 @@
 'use client';
 import { useTodo } from "@/app/network/hooks/useTodo";
+import { Todo } from "@/app/network/http-service/todo";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import React, { ComponentProps, useCallback, useState } from "react";
+import { toast } from "sonner";
 import AddEditTask from "../AddNewTask";
 import OpenTodoModal from "../OpenTodoModal";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
-import { toast } from "sonner";
-
+import TodoTable from "./TodoTable";
 
 const TodoList = () => {
 
     const [open, setOpen] = useState(false);
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
     const [selectedId, setSelectedId] = useState<number>(0);
+    const [rowSelection, setRowSelection] = React.useState({})
 
     const { fetchList, deleteTodo, updateCompleteStatus } = useTodo();
     const { data: todoListData, isLoading } = fetchList;
 
-    const onClickOfSelectButton = useCallback(async (id: string) => {
-        const task = todoListData?.find((data) => data.id === id);
+    function IndeterminateCheckbox({
+        indeterminate, className = '', checked, ...rest
+    }: { indeterminate?: boolean } & Omit<ComponentProps<typeof Checkbox>, 'ref'>) {
+        const ref = React.useRef<HTMLButtonElement>(null);
 
-        let isTaskCompleted = !task?.isComplete;
-        await updateCompleteStatus.mutateAsync({ id: id, taskStatus: isTaskCompleted })
+        React.useEffect(() => {
+            if (ref.current) {
+                if (indeterminate) {
+                    ref.current.setAttribute('data-state', 'indeterminate')
+                    ref.current.setAttribute('aria-checked', 'mixed')
+                } else {
+                    ref.current.removeAttribute('data-state')
+                    ref.current.setAttribute(
+                        'aria-checked',
+                        checked ? "true" : "false"
+                    )
+                }
+            }
+        }, [indeterminate, checked])
 
-    }, [todoListData]);
+        return (
+            <Checkbox
+                ref={ref}
+                checked={checked}
+                className={className}
+                {...rest}
+            />
+        )
+    }
+
+    const handleToggleStatus = useCallback(async (task: Todo, value: boolean) => {
+        await updateCompleteStatus.mutateAsync({
+            id: task.id,
+            taskStatus: value
+        });
+    }, [updateCompleteStatus])
+
+
+    const columns = React.useMemo<ColumnDef<Todo>[]>(
+        () => [
+            {
+                id: 'select',
+                cell: ({ row }) => {
+                    return <IndeterminateCheckbox
+                        checked={row.original.isComplete}
+                        indeterminate={row.getIsSomeSelected()}
+                        onCheckedChange={(value) => handleToggleStatus(row.original, !!value)}
+                    />
+                }
+            },
+            /* {
+                accessorKey: 'id',
+                id: 'id',
+                header: 'Id',
+                enableResizing: false,
+                size: 100
+            }, */
+            {
+                accessorKey: 'task',
+                id: 'task',
+                header: 'Tasks',
+                enableResizing: false,
+                size: 600,
+                cell: ({ row }) => (
+                    <div className={`${row.original.isComplete ? "line-through" : ''} cursor-pointer`}>
+                        {row.original.task}
+                    </div>
+                )
+
+            },
+            {
+                accessorKey: 'action',
+                id: 'action',
+                enableResizing: false,
+                header: 'Actions',
+                cell: ({ row }) => (
+                    <div className="flex items-center gap-2">
+                        <Button disabled={row.original.isComplete} variant={'outline'} size={'sm'} onClick={() => isEditModalOpen(row.original.id)}>Edit</Button>
+                        <Button disabled={row.original.isComplete} variant={'destructive'} size={'sm'} onClick={() => isDeleteModalOpen(row.original.id)}>Delete</Button>
+                    </div>
+                )
+            }
+        ],
+        []
+    )
+
+
+    const onClickOfSelectButton = useCallback(
+        // const task = todoListData?.find((data) => data.id === id);
+
+        // let isTaskCompleted = !task?.isComplete;
+        // await updateCompleteStatus.mutateAsync({ id: id, taskStatus: isTaskCompleted })
+        async (row: Row<Todo>) => {
+            const task = row.original;
+            await updateCompleteStatus.mutateAsync({
+                id: task.id,
+                taskStatus: !!task.isComplete
+            });
+        }
+
+        , [todoListData]);
 
     const isModalOpen = () => {
         setOpen(!open)
@@ -56,7 +152,7 @@ const TodoList = () => {
     return (
         <>
             <div className="w-full mx-auto rounded-t-sm border border-gray-200 shadow-sm bg-white">
-                <div className="w-full items-center flex justify-between bg-gray-100 px-4 py-2 rounded-t-sm">
+                {/*                 <div className="w-full items-center flex justify-between bg-gray-100 px-4 py-2 rounded-t-sm">
                     <span className="text-sm font-medium text-gray-700 uppercase">Tasks</span>
                     <span className="text-sm font-medium text-gray-700 uppercase">Actions</span>
                 </div>
@@ -83,7 +179,9 @@ const TodoList = () => {
                             </div>
                         </div>
                     ))}
-                </div>
+                </div> */}
+                <TodoTable data={todoListData!} columns={columns} setRowSelection={setRowSelection} rowSelection={rowSelection} />
+
             </div>
             <OpenTodoModal open={open} isModalOpen={isModalOpen} headerTitle={<p className="text-center font-bold">Edit Todo Title</p>}>
                 <AddEditTask isModalOpen={isModalOpen} isEditMode selectedTask={selectedId} />
