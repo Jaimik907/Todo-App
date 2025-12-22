@@ -1,9 +1,28 @@
 import pool from '@/lib/mysql';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const [tasks] = await pool.query('SELECT * from todo');
+    let whereClause = '';
+
+    // whereClause = 'WHERE isComplete = 1';
+
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('sortBy');
+
+    if (status === 'complete') {
+      whereClause = 'WHERE isComplete = 1';
+    }
+
+    if (status === 'incomplete') {
+      whereClause = 'WHERE isComplete = 0';
+    }
+
+    if (status === 'all') {
+      whereClause = '';
+    }
+
+    const [tasks] = await pool.query(`SELECT * from todo ${whereClause}`);
     return NextResponse.json(
       {
         message: 'Todos fetched successfully',

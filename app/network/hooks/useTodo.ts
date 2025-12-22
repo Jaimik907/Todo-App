@@ -9,16 +9,17 @@ import {
   ITodo,
   ITodoData,
   ITodoPayload,
+  status,
   updateCompleteTodoStatus,
   updateTask,
 } from '../http-service/todo';
 
-export const useTodo = () => {
+export const useTodo = (status: status) => {
   const queryClient = useQueryClient();
 
   const fetchList = useQuery<IResponse<ITodo>, Error, ITodoData>({
-    queryKey: ['todos'],
-    queryFn: fetchTodoList,
+    queryKey: ['todos', status],
+    queryFn: fetchTodoList.bind(null, status),
     select: (data) => {
       const todo = data.data.tasks.map((task) => ({
         ...task,

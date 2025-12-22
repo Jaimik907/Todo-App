@@ -27,8 +27,10 @@ export interface IAddTodoResponse {
   isComplete: boolean;
 }
 
-export async function fetchTodoList(): Promise<IResponse<ITodo>> {
-  const res = await fetch('/api/todo', {
+export type status = 'complete' | 'incomplete' | 'all';
+
+export async function fetchTodoList(status: status): Promise<IResponse<ITodo>> {
+  const res = await fetch(`/api/todo?sortBy=${status}`, {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
     cache: 'no-store',

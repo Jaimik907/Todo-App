@@ -11,14 +11,14 @@ import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import TodoTable from "./TodoTable";
 
-const TodoList = () => {
+const TodoList = (status: any) => {
 
     const [open, setOpen] = useState(false);
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
     const [selectedId, setSelectedId] = useState<number>(0);
     const [rowSelection, setRowSelection] = React.useState({})
 
-    const { fetchList, deleteTodo, updateCompleteStatus } = useTodo();
+    const { fetchList, deleteTodo, updateCompleteStatus } = useTodo(status.status);
     const { data: todoListData, isLoading } = fetchList;
 
     function IndeterminateCheckbox({
