@@ -22,7 +22,7 @@ const OpenTodoModalButton = ({ children }: Props) => {
             <OpenTodoModal
                 open={open}
                 isModalOpen={onClickOfAddNewTask}
-                headerTitle={<p className="text-center font-bold">Add New Title</p>}
+                headerTitle={<p className="text-center font-bold">Add New Task</p>}
             >
                 <AddEditTask isModalOpen={onClickOfAddNewTask} />
             </OpenTodoModal>

@@ -183,7 +183,7 @@ const TodoList = (status: any) => {
                 <TodoTable data={todoListData!} columns={columns} setRowSelection={setRowSelection} rowSelection={rowSelection} />
 
             </div>
-            <OpenTodoModal open={open} isModalOpen={isModalOpen} headerTitle={<p className="text-center font-bold">Edit Todo Title</p>}>
+            <OpenTodoModal open={open} isModalOpen={isModalOpen} headerTitle={<p className="text-center font-bold">Edit Task</p>}>
                 <AddEditTask isModalOpen={isModalOpen} isEditMode selectedTask={selectedId} />
             </OpenTodoModal>
             <OpenTodoModal open={openDeleteModal} isModalOpen={isDeleteModalOpen} headerTitle={
